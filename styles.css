@@ -41,6 +41,12 @@ body{
 .board-box{
   background-color: white;
   box-sizing: border-box;
+
+  font-size: 8em;
+  color:rgb(225, 0, 100);
+  display: grid;
+  justify-items: center;
+  align-items: center;
 }
 
 .game-info{

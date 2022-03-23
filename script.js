@@ -1,7 +1,32 @@
-@import url(http://fonts.googleapis.com/css?family=Roboto:400,400italic,500,500italic,700,700italic,900,900italic,300italic,300,100italic,100);
 
-body{
-  margin: 0;
-  padding: 0;
-  font-family: Roboto;
-}
+const gameBoard = (() => {
+  let gameArray = ["X", "O", "X", "O", "X", "O", "X", "O", "X"]
+  return {
+    gameArray
+  }
+})();
+
+
+const displayController = (() => {
+  const displayGameArray = (gameArray) => {
+    for (box = 0; box < gameArray.length; box++){
+      gameBox = document.getElementById(`${box}`);
+      gameBox.innerHTML = gameArray[box];
+    }
+  }
+  return {
+    displayGameArray
+  }
+
+})();
+
+displayController.displayGameArray(gameBoard.gameArray)
+/*
+let gameBoxes = document.querySelectorAll(".board-box");
+gameBoxes.forEach(gameBox => 
+  gameBox.addEventListener("click", () =>{
+      gameBox.innerHTML = "X";
+    }
+  )
+);
+*/
