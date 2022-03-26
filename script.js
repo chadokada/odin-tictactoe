@@ -10,6 +10,10 @@ const gameBoard = (() => {
     return gameArrayClone
   }
 
+  const clearBoard = () => {
+    gameArray = new Array(9);
+  }
+
   const isSquareBlank = (gameSquare) => {
     return gameArray[gameSquare] == undefined;
   }
@@ -51,6 +55,7 @@ const gameBoard = (() => {
 
   return {
     viewBoard,
+    clearBoard,
     isSquareBlank,
     placeMarker,
     checkPlayerWin
@@ -59,24 +64,43 @@ const gameBoard = (() => {
 
 const displayController = (() => {
   let gameInfo = document.querySelector(".game-info");
+  let gameBoxes = document.querySelectorAll(".board-box");
 
   const placeMarker = (gameSquareID, marker) => {
     gameSquareDiv = document.getElementById(`${gameSquareID}`);
     gameSquareDiv.innerHTML = marker;
   }
 
+  const clearBoard = () => {
+    gameBoxes.forEach(gameBox => {
+      if (gameBox.innerHTML != ""){
+        gameBox.innerHTML = "";
+      }
+    })
+  }
   const displayCurrentPlayer = (currentPlayerName) => {
     gameInfo.innerHTML = `Now Playing: ${currentPlayerName}`;
   }
+
+  const announceWinner = (winnerName) => {
+    gameInfo.innerHTML = `${winnerName} wins!`; //display this elsewhere
+  }
   return {
     placeMarker,
-    displayCurrentPlayer
+    clearBoard,
+    displayCurrentPlayer,
+    announceWinner
   }
 })();
 
-const Player = (marker) => {
-  const getName = `Player ${marker}`;
+const Player = (marker, playerNum) => {
+  let nameDiv = document.querySelector(`.player-name${playerNum}`)
   const getMarker = marker;
+
+  const getName = () => {
+    return nameDiv.value
+  }
+
   return {
     getName, 
     getMarker
@@ -84,10 +108,8 @@ const Player = (marker) => {
 }
 
 const gameFlow = (() => {
-  let gameOver = false;
-  let gameWinner = "";
-  const playerX = Player("X");
-  const playerO = Player("O");
+  const playerX = Player("X", 1);
+  const playerO = Player("O", 2);
   const players = [playerX, playerO];
   let currentPlayerNum = 0;
   let currentPlayer = players[currentPlayerNum];
@@ -95,6 +117,12 @@ const gameFlow = (() => {
   
   const changePlayer = (currentPlayerNum) => {
     return (currentPlayerNum == 1 ? 0 : 1);
+  }
+
+  const gameOver = (winner) =>{
+    gameBoxes.forEach(gameBox => gameBox.removeEventListener("click", clickHandler));
+    let gameWinner = winner.getName();
+    displayController.announceWinner(gameWinner);
   }
 
   const clickHandler = (event) =>{
@@ -105,31 +133,34 @@ const gameFlow = (() => {
     if (gameBoard.isSquareBlank(gameSquareID)){
       gameBoard.placeMarker(gameSquareID,currentPlayer.getMarker);
       displayController.placeMarker(gameSquareID, marker);
-
-      console.log(gameBoard.checkPlayerWin(currentPlayer))
-
-      currentPlayerNum = changePlayer(currentPlayerNum);
-      currentPlayer = players[currentPlayerNum];
-      displayController.displayCurrentPlayer(currentPlayer.getName);
-  
+      if (gameBoard.checkPlayerWin(currentPlayer)) {
+        gameOver(currentPlayer)
+      } else {
+        currentPlayerNum = changePlayer(currentPlayerNum);
+        currentPlayer = players[currentPlayerNum];
+        displayController.displayCurrentPlayer(currentPlayer.getName());
+      }
     } else {
       alert("Box is already taken. Please select another one")
     }
   }
 
-  const initializeGame = () =>{
+  const startGame = () =>{
     gameBoxes.forEach(gameBox => gameBox.addEventListener("click", clickHandler));
-    displayController.displayCurrentPlayer(currentPlayer.getName)
-    console.log("lets rumble bitch")
-
+    displayController.displayCurrentPlayer(currentPlayer.getName());
   }
 
-  return {initializeGame, gameBoxes, clickHandler}
+  const resetGame = () => {
+    currentPlayerNum = 0;
+    gameBoard.clearBoard();
+    startGame()
+  }
+
+  return {startGame}
 })();
 
 
-gameFlow.initializeGame();
-
+gameFlow.startGame();
 
 
 
