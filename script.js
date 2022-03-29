@@ -135,7 +135,7 @@ const displayController = (() => {
   }
 
   function resizeInput() {
-    this.style.width = this.value.length + "ch";
+    this.style.width = (this.value.length + 1) + "ch";
   }
   var inputs = document.querySelectorAll('input');
   inputs.forEach(input => input.addEventListener('input', resizeInput))
