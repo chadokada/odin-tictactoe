@@ -5,9 +5,9 @@ body{
   padding: 0;
   padding-top: 100px;
   font-family: Roboto;
+  color: white;
   height: 100vh;
-  background-color: rgb(225, 225, 225);
-
+  background-color: black;
   display: grid;
   justify-items: center;
 
@@ -16,27 +16,24 @@ body{
 .container{
   width: auto;
   height: 500px;
-
   display: grid;
-  gap: 10px;
+  gap: 40px;
   grid-template-columns: 1fr;
   grid-template-rows: 1fr auto auto 1fr;
-  
 }
 
 .game-info{
   grid-column: 1/2;
   grid-row: 1/2;
   display: grid;
-
-  background-color:aqua /* Using aqua for formatting, will update later */
+  height: 19px;
 }
 
 .gameboard{
   height: 500px;
   width: 500px;
 
-  background-color: black;
+  background-color: white;
   display: grid;
   gap: 5px;
   grid-template-columns: 1fr 1fr 1fr;
@@ -46,12 +43,11 @@ body{
 }
 
 .board-box{
-  background-color: white;
+  background-color: black;
   box-sizing: border-box;
-
   font-size: 8em;
-  color:rgb(225, 0, 100);
-  
+  color:white;
+  font-weight: bold;
   display: grid;
   justify-items: center;
   align-items: center;
@@ -62,17 +58,57 @@ body{
   grid-column: 1/2;
   grid-row: 3/4;
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr 1fr 1fr;
+  align-items: center;
+  max-width: 500px;
 }
 
-.player{
-  background-color: red;
+.player, 
+.tie{
   display: grid;
+  grid-template-rows: auto auto;
+  row-gap: 10px;
   justify-items: center;
+
+  font-size: 1.125em;
+  text-transform: uppercase;
 }
 
 .player-name{
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 5px;
+}
+
+.player1-name,
+.player2-name{
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  text-transform: inherit;
+  background-color: inherit;
   text-align: center;
+  border: 0.5px solid white;
+  padding-left: 5px;
+  padding-right: 5px;
+  margin: 0;
+  max-width: 123px;
+}
+
+.player1-score,
+.player2-score,
+.tie-score{
+  font-size: 2.25em;
+}
+
+.active-player{
+  color: red;
+}
+
+.active-player-input{
+  color: red;
+  border: 0.5px solid red;
 }
 
 .game-controls{

@@ -1,4 +1,3 @@
-
 const gameBoard = (() => {
   let gameArray = new Array(9);
   let horizontalWins = [0, 3, 6].map( i => { return[i, i+1, i+2] } )
@@ -22,6 +21,12 @@ const gameBoard = (() => {
     if (isSquareBlank(gameSquare)){
       gameArray[gameSquare] = marker;
     }
+  }
+
+  const boardFull = () => {
+    let filledSquares = 0;
+    gameArray.forEach(square => square != undefined ? filledSquares += 1 : null);
+    return filledSquares == 9;
   }
 
   const getMarkedSquares = (marker) => {
@@ -58,7 +63,8 @@ const gameBoard = (() => {
     clearBoard,
     isSquareBlank,
     placeMarker,
-    checkPlayerWin
+    checkPlayerWin,
+    boardFull
   }
 })();
 
@@ -78,89 +84,202 @@ const displayController = (() => {
       }
     })
   }
-  const displayCurrentPlayer = (currentPlayerName) => {
-    gameInfo.innerHTML = `Now Playing: ${currentPlayerName}`;
+
+  const getInactivePlayerNum = (currentPlayerNum) => {
+    return (currentPlayerNum == 1 ? 2 : 1)
+  }
+
+  const getPlayerInfoDivs = (playerNum) => {
+    let containerDiv = document.getElementById(`p${playerNum}`);
+    let nameInput = document.getElementById(`p${playerNum}-input`);
+    return [containerDiv, nameInput]  
+  }
+
+  const toggleActiveStyle = (divArray) =>{
+    let containerDiv, nameInput;
+    [containerDiv, nameInput] = divArray;
+    containerDiv.classList.toggle('active-player');
+    nameInput.classList.toggle('active-player-input')
+  }
+
+  const highlightCurrentPlayer = (currentPlayerNum) => {
+    let playerDivs = getPlayerInfoDivs(currentPlayerNum);
+    toggleActiveStyle(playerDivs)
+  }
+
+  const switchPlayerHighlight = (currentPlayerNum) => {
+    let inactivePlayerNum = getInactivePlayerNum(currentPlayerNum);
+    let currentPlayerDivs = getPlayerInfoDivs(currentPlayerNum);
+    let inactivePlayerDivs = getPlayerInfoDivs(inactivePlayerNum);
+    toggleActiveStyle(currentPlayerDivs);
+    toggleActiveStyle(inactivePlayerDivs);
   }
 
   const announceWinner = (winnerName) => {
     gameInfo.innerHTML = `${winnerName} wins!`; //display this elsewhere
   }
+
+  const clearGameInfo = () => {
+    gameInfo.innerHTML = "";
+  }
+
+  const displayScore = (player) => {
+    let scoreDiv = document.querySelector(`.player${player.getPlayerNum}-score`)
+    scoreDiv.innerHTML = player.getScore();
+  }
+
+  const displayTies = (ties) => {
+    let tieDiv = document.querySelector('.tie-score');
+    tieDiv.innerHTML = ties;
+    gameInfo.innerHTML = "Tie round!"
+  }
+
+  function resizeInput() {
+    this.style.width = this.value.length + "ch";
+  }
+  var inputs = document.querySelectorAll('input');
+  inputs.forEach(input => input.addEventListener('input', resizeInput))
+  inputs.forEach(input => resizeInput.call(input));
+
   return {
     placeMarker,
     clearBoard,
-    displayCurrentPlayer,
+    highlightCurrentPlayer,
+    switchPlayerHighlight,
+    clearGameInfo,
+    displayScore,
+    displayTies,
     announceWinner
   }
 })();
 
 const Player = (marker, playerNum) => {
-  let nameDiv = document.querySelector(`.player-name${playerNum}`)
+  let nameDiv = document.querySelector(`.player${playerNum}-name`)
+  let score = 0;
   const getMarker = marker;
-
+  const getPlayerNum = playerNum
+  
   const getName = () => {
     return nameDiv.value
   }
 
+  const playerWins = () => {
+    score += 1;
+  }
+
+  const getScore = () => {
+    return score;
+  }
+
+  const clearScore = () => {
+    score = 0;
+  }
+
   return {
     getName, 
-    getMarker
+    getMarker,
+    getPlayerNum,
+    playerWins,
+    getScore,
+    clearScore
   }
 }
+
 
 const gameFlow = (() => {
   const playerX = Player("X", 1);
   const playerO = Player("O", 2);
-  const players = [playerX, playerO];
-  let currentPlayerNum = 0;
+  const players = [null, playerX, playerO];
+  let currentPlayerNum = 1;
   let currentPlayer = players[currentPlayerNum];
+  let ties = 0;
   let gameBoxes = document.querySelectorAll(".board-box");
-  
   const changePlayer = (currentPlayerNum) => {
-    return (currentPlayerNum == 1 ? 0 : 1);
+    return (currentPlayerNum == 1 ? 2 : 1);
   }
 
-  const gameOver = (winner) =>{
+  const roundOver = (winner) =>{
+    let roundWinner = winner.getName();
+    displayController.announceWinner(roundWinner);
+    winner.playerWins();
+    displayController.displayScore(winner);
+
     gameBoxes.forEach(gameBox => gameBox.removeEventListener("click", clickHandler));
-    let gameWinner = winner.getName();
-    displayController.announceWinner(gameWinner);
+    gameBoxes.forEach(gameBox => gameBox.addEventListener("click", newRound));
+  }
+
+  const roundTie = () => {
+    ties += 1;
+    displayController.displayTies(ties);
+    gameBoxes.forEach(gameBox => gameBox.removeEventListener("click", clickHandler));
+    gameBoxes.forEach(gameBox => gameBox.addEventListener("click", newRound));
   }
 
   const clickHandler = (event) =>{
     let currentSquare = event.path[0];
     let gameSquareID = currentSquare.id;
-    let marker = currentPlayer.getMarker;
+    let marker = currentPlayer.getMarker
 
     if (gameBoard.isSquareBlank(gameSquareID)){
       gameBoard.placeMarker(gameSquareID,currentPlayer.getMarker);
       displayController.placeMarker(gameSquareID, marker);
-      if (gameBoard.checkPlayerWin(currentPlayer)) {
-        gameOver(currentPlayer)
+
+      if (gameBoard.boardFull()){
+        if (gameBoard.checkPlayerWin(currentPlayer)){
+          roundOver(currentPlayer)
+        } else {
+          roundTie();
+        }
+
       } else {
-        currentPlayerNum = changePlayer(currentPlayerNum);
-        currentPlayer = players[currentPlayerNum];
-        displayController.displayCurrentPlayer(currentPlayer.getName());
+        if (gameBoard.checkPlayerWin(currentPlayer)) {
+          roundOver(currentPlayer)
+        } else {
+          currentPlayerNum = changePlayer(currentPlayerNum);
+          currentPlayer = players[currentPlayerNum];
+  
+          displayController.switchPlayerHighlight(currentPlayer.getPlayerNum);
+        }
       }
+
     } else {
       alert("Box is already taken. Please select another one")
     }
   }
 
+  const restartGame = () => {
+    currentPlayerNum = 1;
+    ties = 0
+    gameBoard.clearBoard();
+    displayController.clearBoard();
+    playerX.clearScore();
+    playerO.clearScore();
+    displayController.displayScore(playerX);
+    displayController.displayScore(playerO);
+    displayController.displayTies(ties);
+    displayController.clearGameInfo();
+  }
+
+  let restartBtn = document.querySelector(".restart")
+  restartBtn.addEventListener('click', restartGame)
+
+  const newRound = () =>{
+    gameBoxes.forEach(gameBox => gameBox.removeEventListener("click", newRound));
+    gameBoxes.forEach(gameBox => gameBox.addEventListener("click", clickHandler));
+    displayController.clearBoard();
+    displayController.clearGameInfo();
+    gameBoard.clearBoard();
+  }
+
   const startGame = () =>{
     gameBoxes.forEach(gameBox => gameBox.addEventListener("click", clickHandler));
-    displayController.displayCurrentPlayer(currentPlayer.getName());
+    displayController.highlightCurrentPlayer(currentPlayer.getPlayerNum);
   }
 
-  const resetGame = () => {
-    currentPlayerNum = 0;
-    gameBoard.clearBoard();
-    startGame()
+  return {
+    startGame,
+    newRound
   }
-
-  return {startGame}
 })();
 
-
 gameFlow.startGame();
-
-
-
