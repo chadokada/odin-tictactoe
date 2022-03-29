@@ -116,7 +116,7 @@ const displayController = (() => {
   }
 
   const announceWinner = (winnerName) => {
-    gameInfo.innerHTML = `${winnerName} wins!`; //display this elsewhere
+    gameInfo.innerHTML = `${winnerName} wins!`;
   }
 
   const clearGameInfo = () => {
